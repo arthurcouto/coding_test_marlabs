@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Elevator.App/Elevator.App.csproj" />
+  <Project Path="Elevator.Core/Elevator.Core.csproj" />
+  <Project Path="Elevator.Domain/Elevator.Domain.csproj" />
+  <Project Path="Elevator.Tests/Elevator.Tests.csproj" />
+</Solution>

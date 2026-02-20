@@ -1,0 +1,20 @@
+services:
+  elevator-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # IMPORTANT: Keep STDIN open and allocate a pseudo-TTY for interactive console
+    stdin_open: true
+    tty: true
+
+    environment:
+      # Injecting SystemSettings dynamically
+      - MinFloor=1
+      - MaxFloor=20
+      - LocalElevatorCount=3
+      - ExpressElevatorCount=1
+      - FreightElevatorCount=1
+      - GlobalTimeoutMs=10000
+      - ExpressAllowedFloors=1,10,11,12,13,14,15,16,17,18,19,20
+      - FreightAllowedFloors=1,2,3,4,5
