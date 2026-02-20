@@ -19,8 +19,7 @@ public class ClosestElevatorScheduler : IScheduler
 
         return elevators
             .Where(e => CanService(e, request))
-            .OrderBy(e => CalculateDistance(e, request))
-            .ThenBy(e => e.PendingCount)
+            .OrderBy(e => CalculateScore(e, request))
             .FirstOrDefault();
     }
 
@@ -39,8 +38,27 @@ public class ClosestElevatorScheduler : IScheduler
         return false;
     }
 
-    private int CalculateDistance(IElevator elevator, Request request)
+    private int CalculateScore(IElevator elevator, Request request)
     {
-        return Math.Abs(elevator.CurrentFloor - request.PickupFloor);
+        // Base score is distance (lower is better)
+        int score = Math.Abs(elevator.CurrentFloor - request.PickupFloor);
+        
+        // Tie-breaker by queue size
+        score += (elevator.PendingCount * 10);
+        
+        // Massive bonus for Express elevators if they reached this far (since Dispatcher already checked AllowedFloors)
+        // This ensures an Express at floor 10 wins an allowed ride from 1 to 20 over a Local at floor 2
+        if (elevator.Configuration.Type == ElevatorType.Express)
+        {
+            score -= 10000;
+        }
+
+        // VIP requests want the emptiest elevator possible, massively penalized for having a queue
+        if (request.IsVip && elevator.PendingCount > 0)
+        {
+            score += 50000;
+        }
+
+        return score;
     }
 }

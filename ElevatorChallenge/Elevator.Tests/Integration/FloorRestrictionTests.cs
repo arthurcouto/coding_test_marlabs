@@ -118,4 +118,43 @@ public class FloorRestrictionTests
         Assert.Equal(10, express.CurrentFloor); // Express never moved from its spawn
         Assert.True(local.PendingCount > 0 || local.CurrentFloor > 1); // Local had to take it
     }
+
+    [Fact]
+    public void Dispatcher_ShouldAssignExpress_EvenWhenFurtherAway_IfAllowed()
+    {
+        var elevators = _system.GetElevators().ToList();
+        var local = elevators.Single(e => e.Configuration.Type == ElevatorType.Local);
+        var express = elevators.Single(e => e.Configuration.Type == ElevatorType.Express);
+        
+        // Setup:
+        // Local is at 1. Express is at 10.
+        // We request from 1 to 10.
+        // For distance: Local is distance 0. Express is distance 9!
+        // But since this request starts inside Express bounds (1) and goes to Express bounds (10), 
+        // the new Scoring algorithmic massive Express bonus (-10000) should mathematically force the Express to come all the way down to get it,
+        // leaving the Local free for shorter non-express trips.
+        
+        // Express config allowed floors: 10,11
+        // We must change the express config for this test or use a request within its bounds.
+        // In the original config for this test file, Express only allowed 10 and 11.
+        // Let's modify the Express allowed floors for this test specifically by sending a request from 10 to 11 when Local is at 10.
+        
+        local.AddDestination(new Request(10, 10, Direction.None));
+        express.AddDestination(new Request(11, 11, Direction.None));
+        Thread.Sleep(50);
+        
+        // Now Local is at 10 (Distance 0). Express is at 11 (Distance 1).
+        
+        _system.SubmitRequest(new Request(10, 11, Direction.Up));
+        
+        int maxRetries = 10;
+        while (express.PendingCount == 0 && express.CurrentFloor == 11 && maxRetries-- > 0)
+        {
+            Thread.Sleep(100);
+        }
+
+        // Output should be Express handles it despite Local being right there.
+        Assert.True(express.PendingCount > 0 || express.CurrentFloor < 11, "Express elevator did not pick up the Express-oriented request.");
+        Assert.Equal(0, local.PendingCount);
+    }
 }
