@@ -32,7 +32,7 @@ Você só precisa ter o `docker` e `docker-compose` instalados:
 
 ### Via .NET Nativo
 
-O SDK do .NET (v8.0 ou superior) é obrigatório.
+O SDK do .NET é obrigatório.
 
 1. **Na raiz do diretório da Solução `ElevatorChallenge/`**, construa o projeto:
    ```bash
